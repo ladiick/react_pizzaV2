@@ -2,32 +2,50 @@ import Sort from "../components/Sort";
 import Skeleton from "../components/PizzaBlock/Skeleton";
 import PizzaBlock from "../components/PizzaBlock/PizzaBlock";
 import Categories from "../components/Categories"
-import {useEffect, useState} from "react";
-import sort from "../components/Sort";
+import {useContext, useEffect, useState} from "react";
+
+import Pagination from "../components/Pagination/Pagination";
+import {SearchContext} from "../App";
+import {useDispatch, useSelector} from "react-redux";
+import {setCategoryId,setSort} from "../components/redux/slices/filterSlice";
+
+const Home = () => {
+
+    const categoryId = useSelector(state => state.filter.categoryId)
+    const sortType = useSelector(state => state.filter.sort.sortType)
+    console.log('sortType',sortType)
+
+    const dispatch = useDispatch();
+
+    const onChangeCategory = (id)=>{
+        dispatch(setCategoryId(id))
+    }
 
 
-const Home = ({searchValue}) => {
-
+    const { searchValue } = useContext(SearchContext);
     let [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [categoryId, setCategoryId] = useState(0);
-    const [sortType, setSortType] = useState({
-        name:'популярности',
-        sort:'rating'
-    });
+    // const [categoryId, setCategoryId] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    // const [sortType, setSortType] = useState({
+    //     name:'популярности',
+    //     sort:'rating'
+    // });
+
+
 
     const search = searchValue ? `&search=${searchValue}` : ''
 
     useEffect(() => {
         setIsLoading(true)
-        fetch(`https://639b31b331877e43d6857379.mockapi.io/items?${categoryId > 0 ? `category=${categoryId}` : ''}&sortBy=${sortType.sort}&order=desc${search}`)
+        fetch(`https://639b31b331877e43d6857379.mockapi.io/items?page=${currentPage}&limit=4${categoryId > 0 ? `category=${categoryId}` : ''}&sortBy=${sortType}&order=desc${search}`)
             .then(res => res.json())
             .then(json => {
                 setItems(json)
                 setIsLoading(false)
             })
         window.scrollTo(0, 0)
-    }, [categoryId,sortType,searchValue]);
+    }, [categoryId,sortType,searchValue,currentPage]);
 
     const pizzaz = items.map(obj => <PizzaBlock key={obj.id} {...obj}  />)
     // поиск по статичному массиву без back-end
@@ -42,9 +60,8 @@ const Home = ({searchValue}) => {
         <div className="container">
             <div className="content__top">
                 <Categories value={categoryId}
-                            onClickCategory={(id) => setCategoryId(id)}/>
-                <Sort value={sortType}
-                      onClickSort={(id) => setSortType(id)} />
+                            onChangeCategory={onChangeCategory}/>
+                <Sort />
             </div>
             <h2 className="content__title">Все пиццы</h2>
             <div className="content__items">
@@ -53,6 +70,9 @@ const Home = ({searchValue}) => {
                     isLoading ? skeletons : pizzaz
                 }
             </div>
+
+            <Pagination onChangePage={number=>setCurrentPage(number)}/>
+
         </div>
     )
 }
