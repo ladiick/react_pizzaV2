@@ -1,19 +1,46 @@
 import s from './Search.module.scss'
 import {useContext} from "react";
 import {SearchContext} from "../../App";
+import {useRef,useCallback,useState} from "react";
+import debounce from "lodash.debounce";
+
+
 const Search = () => {
 
+    const refInputSearch = useRef(null);
+    const { setSearchValue } = useContext(SearchContext);
+    const [value, setValue] = useState('');
 
-    const { searchValue,setSearchValue } = useContext(SearchContext);
+
+    const onClickClear = () => {
+        setValue('')
+        setSearchValue('')
+
+        refInputSearch.current.focus();
+    }
+
+    const updateSearchValue = useCallback(
+            debounce( (str)=>{
+                setSearchValue(str)
+            },1000),[]
+        )
+
+    const onChangeInput=(event)=>{
+        setValue(event.target.value)
+        updateSearchValue(event.target.value)
+    }
 
     return (
 
         <div className={s.wrapper__search}>
             <input
-                value={searchValue}
-                onChange={event => setSearchValue(event.target.value)}
+                value={value}
+                onChange={onChangeInput}
                 className={s.search}
-                placeholder='Поиск пиццы'/>
+                placeholder='Поиск пиццы'
+                ref={refInputSearch}
+
+            />
             <svg
                 className={s.search__button}
                 height="24px" version="1.1" viewBox="0 0 512 512" width="24px">
@@ -22,9 +49,9 @@ const Search = () => {
             </svg>
 
             {
-                searchValue &&
+                value &&
                 <svg
-                    onClick={()=>setSearchValue('')}
+                    onClick={()=>onClickClear()}
                     width='24px' height='24px' className={s.search__close} version="1.1" viewBox="0 0 24 24">
                     <g id="grid_system"/>
                     <g id="_icons">

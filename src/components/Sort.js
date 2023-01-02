@@ -5,7 +5,7 @@ const Sort = () => {
     const dispatch = useDispatch()
 
     const sort = useSelector(state=>state.filter.sort)
-    console.log('sortSort',sort)
+
     const [open, setOpen] = useState(false);
     const list = [
         {name:'популярности', sortType:'rating'},
